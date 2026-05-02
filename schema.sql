@@ -154,6 +154,68 @@ CREATE TRIGGER trg_payments_updated_at
     BEFORE UPDATE ON payments
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+-- ---------------------------------------------------------------------
+-- Enum types for expenses and salaries
+-- ---------------------------------------------------------------------
+DO $$ BEGIN
+    CREATE TYPE expense_category AS ENUM ('SUPPLIES', 'EQUIPMENT', 'RENT', 'UTILITIES', 'MARKETING', 'TRAVEL', 'TRAINING', 'MAINTENANCE', 'OTHER');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE expense_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'REIMBURSED');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE salary_status AS ENUM ('PENDING', 'PAID', 'CANCELLED');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- ---------------------------------------------------------------------
+-- expenses (business expenses, optionally linked to a staff member)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS expenses (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    description   VARCHAR(500) NOT NULL,
+    amount        NUMERIC(10, 2) NOT NULL,
+    category      expense_category NOT NULL,
+    expense_date  DATE NOT NULL,
+    status        expense_status NOT NULL DEFAULT 'PENDING',
+    staff_id      UUID REFERENCES staff(id) ON DELETE SET NULL,
+    receipt_url   VARCHAR(1000),
+    notes         TEXT,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_expenses_staff_id     ON expenses(staff_id);
+CREATE INDEX IF NOT EXISTS ix_expenses_expense_date ON expenses(expense_date);
+
+DROP TRIGGER IF EXISTS trg_expenses_updated_at ON expenses;
+CREATE TRIGGER trg_expenses_updated_at
+    BEFORE UPDATE ON expenses
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ---------------------------------------------------------------------
+-- salaries (monthly salary disbursements per staff member)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS salaries (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    staff_id   UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+    amount     NUMERIC(10, 2) NOT NULL,
+    pay_year   INTEGER NOT NULL,
+    pay_month  INTEGER NOT NULL CHECK (pay_month BETWEEN 1 AND 12),
+    status     salary_status NOT NULL DEFAULT 'PENDING',
+    paid_at    TIMESTAMPTZ,
+    notes      TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT uq_staff_pay_period UNIQUE (staff_id, pay_year, pay_month)
+);
+CREATE INDEX IF NOT EXISTS ix_salaries_staff_id ON salaries(staff_id);
+
+DROP TRIGGER IF EXISTS trg_salaries_updated_at ON salaries;
+CREATE TRIGGER trg_salaries_updated_at
+    BEFORE UPDATE ON salaries
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 -- =====================================================================
 -- Done. Verify with:
 --   SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;

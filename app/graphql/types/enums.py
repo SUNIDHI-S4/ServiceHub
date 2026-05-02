@@ -7,8 +7,18 @@ from __future__ import annotations
 
 import strawberry
 
-from app.models.enums import AppointmentStatus, InvoiceStatus, PaymentMethod
+from app.models.enums import (
+    AppointmentStatus,
+    ExpenseCategory,
+    ExpenseStatus,
+    InvoiceStatus,
+    PaymentMethod,
+    SalaryStatus,
+)
 
 AppointmentStatusEnum = strawberry.enum(AppointmentStatus, name="AppointmentStatus")
 InvoiceStatusEnum = strawberry.enum(InvoiceStatus, name="InvoiceStatus")
 PaymentMethodEnum = strawberry.enum(PaymentMethod, name="PaymentMethod")
+ExpenseCategoryEnum = strawberry.enum(ExpenseCategory, name="ExpenseCategory")
+ExpenseStatusEnum = strawberry.enum(ExpenseStatus, name="ExpenseStatus")
+SalaryStatusEnum = strawberry.enum(SalaryStatus, name="SalaryStatus")

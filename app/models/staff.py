@@ -12,6 +12,8 @@ from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.appointment import Appointment
+    from app.models.expense import Expense
+    from app.models.salary import Salary
 
 
 class Staff(Base, TimestampMixin):
@@ -33,6 +35,13 @@ class Staff(Base, TimestampMixin):
     )
 
     appointments: Mapped[list["Appointment"]] = relationship(
+        back_populates="staff_member",
+        cascade="all, delete-orphan",
+    )
+    expenses: Mapped[list["Expense"]] = relationship(
+        back_populates="staff_member",
+    )
+    salaries: Mapped[list["Salary"]] = relationship(
         back_populates="staff_member",
         cascade="all, delete-orphan",
     )

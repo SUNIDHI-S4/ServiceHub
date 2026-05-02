@@ -4,6 +4,8 @@ import strawberry
 from app.graphql.mutations.appointment import AppointmentMutations
 from app.graphql.mutations.billing import BillingMutations
 from app.graphql.mutations.client import ClientMutations
+from app.graphql.mutations.expense import ExpenseMutations
+from app.graphql.mutations.salary import SalaryMutations
 from app.graphql.mutations.service import ServiceMutations
 from app.graphql.mutations.staff import StaffMutations
 
@@ -15,6 +17,8 @@ class Mutation(
     ServiceMutations,
     AppointmentMutations,
     BillingMutations,
+    ExpenseMutations,
+    SalaryMutations,
 ):
     """Root GraphQL Mutation type, assembled from per-domain mixins."""
 

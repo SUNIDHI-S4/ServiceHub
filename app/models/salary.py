@@ -43,6 +43,9 @@ class Salary(Base, TimestampMixin):
         index=True,
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    bonus: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), nullable=False, default=0, server_default="0"
+    )
     pay_year: Mapped[int] = mapped_column(Integer, nullable=False)
     pay_month: Mapped[int] = mapped_column(Integer, nullable=False)  # 1–12
     status: Mapped[SalaryStatus] = mapped_column(

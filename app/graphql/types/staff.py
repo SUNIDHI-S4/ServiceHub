@@ -22,6 +22,7 @@ class StaffType:
     email: str
     role: str
     specializations: list[str]
+    monthly_salary: Decimal
     created_at: datetime
     updated_at: datetime
 
@@ -74,6 +75,7 @@ class StaffType:
             email=obj.email,
             role=obj.role,
             specializations=list(obj.specializations or []),
+            monthly_salary=obj.monthly_salary,
             created_at=obj.created_at,
             updated_at=obj.updated_at,
         )

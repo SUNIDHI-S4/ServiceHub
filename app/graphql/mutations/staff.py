@@ -27,6 +27,7 @@ class StaffMutations:
             email=input.email,
             role=input.role,
             specializations=list(input.specializations or []),
+            monthly_salary=input.monthly_salary,
         )
         obj = await repo.add(obj)
         return StaffType.from_orm(obj)
@@ -50,6 +51,8 @@ class StaffMutations:
             obj.role = input.role
         if _is_set(input.specializations):
             obj.specializations = list(input.specializations or [])
+        if _is_set(input.monthly_salary):
+            obj.monthly_salary = input.monthly_salary
         await info.context.db.flush()
         await info.context.db.refresh(obj)
         return StaffType.from_orm(obj)

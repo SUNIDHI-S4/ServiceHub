@@ -26,6 +26,14 @@ class Service(Base, TimestampMixin):
     duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
     # Numeric (not Float) — exact decimal arithmetic required for money.
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    # GST percentage applied on top of price (e.g. 18.00 for 18% GST).
+    gst_percent: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2), nullable=False, default=0, server_default="0"
+    )
+    # Flat bonus/discount applied to the service (positive = surcharge, negative = discount).
+    bonus: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), nullable=False, default=0, server_default="0"
+    )
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="true"
     )

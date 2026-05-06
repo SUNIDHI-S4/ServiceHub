@@ -27,6 +27,8 @@ class ServiceMutations:
             description=input.description,
             duration_minutes=input.duration_minutes,
             price=input.price,
+            gst_percent=input.gst_percent,
+            bonus=input.bonus,
             is_active=input.is_active,
         )
         obj = await repo.add(obj)
@@ -51,6 +53,10 @@ class ServiceMutations:
             obj.duration_minutes = input.duration_minutes
         if _is_set(input.price):
             obj.price = input.price
+        if _is_set(input.gst_percent):
+            obj.gst_percent = input.gst_percent
+        if _is_set(input.bonus):
+            obj.bonus = input.bonus
         if _is_set(input.is_active):
             obj.is_active = input.is_active
         await info.context.db.flush()

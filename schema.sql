@@ -217,6 +217,20 @@ CREATE TRIGGER trg_salaries_updated_at
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- =====================================================================
+-- Column additions — safe to re-run (IF NOT EXISTS guards).
+-- =====================================================================
+
+-- Staff: base monthly salary
+ALTER TABLE staff ADD COLUMN IF NOT EXISTS monthly_salary NUMERIC(10, 2) NOT NULL DEFAULT 0;
+
+-- Services: GST percentage and bonus/surcharge
+ALTER TABLE services ADD COLUMN IF NOT EXISTS gst_percent NUMERIC(5, 2) NOT NULL DEFAULT 0;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS bonus NUMERIC(10, 2) NOT NULL DEFAULT 0;
+
+-- Salaries: bonus per disbursement
+ALTER TABLE salaries ADD COLUMN IF NOT EXISTS bonus NUMERIC(10, 2) NOT NULL DEFAULT 0;
+
+-- =====================================================================
 -- Done. Verify with:
 --   SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;
 -- =====================================================================

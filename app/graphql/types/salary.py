@@ -19,6 +19,7 @@ class SalaryType:
     id: strawberry.ID
     staff_id: strawberry.ID
     amount: Decimal
+    bonus: Decimal
     pay_year: int
     pay_month: int
     status: SalaryStatusEnum
@@ -26,6 +27,12 @@ class SalaryType:
     notes: str | None
     created_at: datetime
     updated_at: datetime
+
+    @strawberry.field
+    def total_pay(self) -> Decimal:
+        """amount + bonus."""
+        from decimal import Decimal as D
+        return D(str(self.amount)) + D(str(self.bonus))
 
     @strawberry.field
     async def staff_member(
@@ -44,6 +51,7 @@ class SalaryType:
             id=strawberry.ID(str(obj.id)),
             staff_id=strawberry.ID(str(obj.staff_id)),
             amount=obj.amount,
+            bonus=obj.bonus,
             pay_year=obj.pay_year,
             pay_month=obj.pay_month,
             status=obj.status,

@@ -12,10 +12,12 @@ class CreateSalaryInput:
     amount: Decimal
     pay_year: int
     pay_month: int
+    bonus: Decimal = Decimal("0")
     notes: str | None = None
 
 
 @strawberry.input
 class UpdateSalaryInput:
     amount: Decimal | None = strawberry.UNSET
+    bonus: Decimal | None = strawberry.UNSET
     notes: str | None = strawberry.UNSET

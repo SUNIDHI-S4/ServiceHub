@@ -32,6 +32,7 @@ class SalaryMutations:
                 amount=input.amount,
                 pay_year=input.pay_year,
                 pay_month=input.pay_month,
+                bonus=input.bonus,
                 notes=input.notes,
             )
         except DuplicateSalaryError as exc:
@@ -53,6 +54,8 @@ class SalaryMutations:
             return None
         if _is_set(input.amount):
             obj.amount = input.amount
+        if _is_set(input.bonus):
+            obj.bonus = input.bonus
         if _is_set(input.notes):
             obj.notes = input.notes
         await info.context.db.flush()

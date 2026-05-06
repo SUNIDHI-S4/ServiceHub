@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import strawberry
 
+from app.graphql.scalars import Decimal
+
 
 @strawberry.input
 class CreateStaffInput:
@@ -10,6 +12,7 @@ class CreateStaffInput:
     email: str
     role: str
     specializations: list[str] = strawberry.field(default_factory=list)
+    monthly_salary: Decimal = Decimal("0")
 
 
 @strawberry.input
@@ -18,3 +21,4 @@ class UpdateStaffInput:
     email: str | None = strawberry.UNSET
     role: str | None = strawberry.UNSET
     specializations: list[str] | None = strawberry.UNSET
+    monthly_salary: Decimal | None = strawberry.UNSET

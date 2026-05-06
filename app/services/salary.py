@@ -34,6 +34,7 @@ class SalaryService:
         amount: Decimal,
         pay_year: int,
         pay_month: int,
+        bonus: Decimal = Decimal("0"),
         notes: str | None = None,
     ) -> Salary:
         staff = await self.staff.get_by_id(staff_id)
@@ -53,6 +54,7 @@ class SalaryService:
         salary = Salary(
             staff_id=staff_id,
             amount=amount,
+            bonus=bonus,
             pay_year=pay_year,
             pay_month=pay_month,
             notes=notes,

@@ -5,6 +5,12 @@ import uuid
 
 import strawberry
 
+from app.graphql.types.paginated import PaginatedServices
+from app.graphql.types.pagination import (
+    PaginationInput,
+    build_page_info,
+    pagination_to_offset,
+)
 from app.graphql.types.service import ServiceType
 from app.repositories.service import ServiceRepository
 
@@ -16,15 +22,25 @@ class ServiceQueries:
         self,
         info: strawberry.Info,
         active_only: bool = True,
-        skip: int = 0,
-        limit: int = 50,
-    ) -> list[ServiceType]:
+        pagination: PaginationInput | None = None,
+    ) -> PaginatedServices:
+        pagination = pagination or PaginationInput()
+        skip, limit = pagination_to_offset(pagination)
         repo = ServiceRepository(info.context.db)
         if active_only:
             rows = await repo.list_active(skip=skip, limit=limit)
+            total = await repo.count_active()
         else:
             rows = await repo.list_all(skip=skip, limit=limit)
-        return [ServiceType.from_orm(r) for r in rows]
+            total = await repo.count_all()
+        return PaginatedServices(
+            items=[ServiceType.from_orm(r) for r in rows],
+            page_info=build_page_info(
+                total_count=total,
+                page=max(1, pagination.page),
+                page_size=limit,
+            ),
+        )
 
     @strawberry.field
     async def service(

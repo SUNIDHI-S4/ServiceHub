@@ -1,7 +1,7 @@
 """Service repository."""
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.models.service import Service
 from app.repositories.base import BaseRepository
@@ -18,3 +18,9 @@ class ServiceRepository(BaseRepository[Service]):
             .limit(limit)
         )
         return list(result.scalars().all())
+
+    async def count_active(self) -> int:
+        result = await self.db.execute(
+            select(func.count()).select_from(Service).where(Service.is_active.is_(True))
+        )
+        return result.scalar_one()

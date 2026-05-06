@@ -6,6 +6,12 @@ import uuid
 import strawberry
 
 from app.graphql.types.client import ClientType
+from app.graphql.types.paginated import PaginatedClients
+from app.graphql.types.pagination import (
+    PaginationInput,
+    build_page_info,
+    pagination_to_offset,
+)
 from app.repositories.client import ClientRepository
 
 
@@ -13,11 +19,23 @@ from app.repositories.client import ClientRepository
 class ClientQueries:
     @strawberry.field
     async def clients(
-        self, info: strawberry.Info, skip: int = 0, limit: int = 50
-    ) -> list[ClientType]:
+        self,
+        info: strawberry.Info,
+        pagination: PaginationInput | None = None,
+    ) -> PaginatedClients:
+        pagination = pagination or PaginationInput()
+        skip, limit = pagination_to_offset(pagination)
         repo = ClientRepository(info.context.db)
         rows = await repo.list_all(skip=skip, limit=limit)
-        return [ClientType.from_orm(r) for r in rows]
+        total = await repo.count_all()
+        return PaginatedClients(
+            items=[ClientType.from_orm(r) for r in rows],
+            page_info=build_page_info(
+                total_count=total,
+                page=max(1, pagination.page),
+                page_size=limit,
+            ),
+        )
 
     @strawberry.field
     async def client(

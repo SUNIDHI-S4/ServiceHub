@@ -14,6 +14,25 @@ from app.repositories.base import BaseRepository
 class SalaryRepository(BaseRepository[Salary]):
     model = Salary
 
+    @staticmethod
+    def _build_conditions(
+        *,
+        staff_id: uuid.UUID | None = None,
+        status: SalaryStatus | None = None,
+        pay_year: int | None = None,
+        pay_month: int | None = None,
+    ) -> list:
+        conditions = []
+        if staff_id is not None:
+            conditions.append(Salary.staff_id == staff_id)
+        if status is not None:
+            conditions.append(Salary.status == status)
+        if pay_year is not None:
+            conditions.append(Salary.pay_year == pay_year)
+        if pay_month is not None:
+            conditions.append(Salary.pay_month == pay_month)
+        return conditions
+
     async def list_filtered(
         self,
         *,
@@ -24,16 +43,10 @@ class SalaryRepository(BaseRepository[Salary]):
         skip: int = 0,
         limit: int = 50,
     ) -> list[Salary]:
+        conditions = self._build_conditions(
+            staff_id=staff_id, status=status, pay_year=pay_year, pay_month=pay_month,
+        )
         stmt = select(Salary)
-        conditions = []
-        if staff_id is not None:
-            conditions.append(Salary.staff_id == staff_id)
-        if status is not None:
-            conditions.append(Salary.status == status)
-        if pay_year is not None:
-            conditions.append(Salary.pay_year == pay_year)
-        if pay_month is not None:
-            conditions.append(Salary.pay_month == pay_month)
         if conditions:
             stmt = stmt.where(and_(*conditions))
         stmt = (
@@ -43,6 +56,23 @@ class SalaryRepository(BaseRepository[Salary]):
         )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+    async def count_filtered(
+        self,
+        *,
+        staff_id: uuid.UUID | None = None,
+        status: SalaryStatus | None = None,
+        pay_year: int | None = None,
+        pay_month: int | None = None,
+    ) -> int:
+        conditions = self._build_conditions(
+            staff_id=staff_id, status=status, pay_year=pay_year, pay_month=pay_month,
+        )
+        stmt = select(func.count()).select_from(Salary)
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
+        result = await self.db.execute(stmt)
+        return result.scalar_one()
 
     async def list_for_staff(self, staff_id: uuid.UUID) -> list[Salary]:
         result = await self.db.execute(

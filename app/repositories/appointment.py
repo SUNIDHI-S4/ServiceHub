@@ -15,18 +15,15 @@ from app.repositories.base import BaseRepository
 class AppointmentRepository(BaseRepository[Appointment]):
     model = Appointment
 
-    async def list_filtered(
-        self,
+    @staticmethod
+    def _build_conditions(
         *,
         status: AppointmentStatus | None = None,
         client_id: uuid.UUID | None = None,
         staff_id: uuid.UUID | None = None,
         from_date: datetime | None = None,
         to_date: datetime | None = None,
-        skip: int = 0,
-        limit: int = 50,
-    ) -> list[Appointment]:
-        stmt = select(Appointment)
+    ) -> list:
         conditions = []
         if status is not None:
             conditions.append(Appointment.status == status)
@@ -38,11 +35,48 @@ class AppointmentRepository(BaseRepository[Appointment]):
             conditions.append(Appointment.scheduled_at >= from_date)
         if to_date is not None:
             conditions.append(Appointment.scheduled_at <= to_date)
+        return conditions
+
+    async def list_filtered(
+        self,
+        *,
+        status: AppointmentStatus | None = None,
+        client_id: uuid.UUID | None = None,
+        staff_id: uuid.UUID | None = None,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+        skip: int = 0,
+        limit: int = 50,
+    ) -> list[Appointment]:
+        conditions = self._build_conditions(
+            status=status, client_id=client_id, staff_id=staff_id,
+            from_date=from_date, to_date=to_date,
+        )
+        stmt = select(Appointment)
         if conditions:
             stmt = stmt.where(and_(*conditions))
         stmt = stmt.order_by(Appointment.scheduled_at.desc()).offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+    async def count_filtered(
+        self,
+        *,
+        status: AppointmentStatus | None = None,
+        client_id: uuid.UUID | None = None,
+        staff_id: uuid.UUID | None = None,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> int:
+        conditions = self._build_conditions(
+            status=status, client_id=client_id, staff_id=staff_id,
+            from_date=from_date, to_date=to_date,
+        )
+        stmt = select(func.count()).select_from(Appointment)
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
+        result = await self.db.execute(stmt)
+        return result.scalar_one()
 
     async def list_for_client(self, client_id: uuid.UUID) -> list[Appointment]:
         result = await self.db.execute(

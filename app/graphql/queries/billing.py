@@ -7,6 +7,12 @@ import strawberry
 
 from app.graphql.types.enums import InvoiceStatusEnum
 from app.graphql.types.invoice import InvoiceType
+from app.graphql.types.paginated import PaginatedInvoices, PaginatedPayments
+from app.graphql.types.pagination import (
+    PaginationInput,
+    build_page_info,
+    pagination_to_offset,
+)
 from app.graphql.types.payment import PaymentType
 from app.repositories.billing import BillingRepository
 
@@ -18,12 +24,21 @@ class BillingQueries:
         self,
         info: strawberry.Info,
         status: InvoiceStatusEnum | None = None,
-        skip: int = 0,
-        limit: int = 50,
-    ) -> list[InvoiceType]:
+        pagination: PaginationInput | None = None,
+    ) -> PaginatedInvoices:
+        pagination = pagination or PaginationInput()
+        skip, limit = pagination_to_offset(pagination)
         repo = BillingRepository(info.context.db)
         rows = await repo.list_invoices(status=status, skip=skip, limit=limit)
-        return [InvoiceType.from_orm(r) for r in rows]
+        total = await repo.count_invoices(status=status)
+        return PaginatedInvoices(
+            items=[InvoiceType.from_orm(r) for r in rows],
+            page_info=build_page_info(
+                total_count=total,
+                page=max(1, pagination.page),
+                page_size=limit,
+            ),
+        )
 
     @strawberry.field
     async def invoice(

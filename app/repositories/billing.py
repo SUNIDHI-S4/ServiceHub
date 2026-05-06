@@ -31,6 +31,21 @@ class BillingRepository(BaseRepository[Invoice]):
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
+    async def count_invoices(self, *, status: InvoiceStatus | None = None) -> int:
+        stmt = select(func.count()).select_from(Invoice)
+        if status is not None:
+            stmt = stmt.where(Invoice.status == status)
+        result = await self.db.execute(stmt)
+        return result.scalar_one()
+
+    async def count_payments_for_invoice(self, invoice_id: uuid.UUID) -> int:
+        result = await self.db.execute(
+            select(func.count()).select_from(Payment).where(
+                Payment.invoice_id == invoice_id
+            )
+        )
+        return result.scalar_one()
+
     async def get_invoice_by_appointment_id(
         self, appointment_id: uuid.UUID
     ) -> Invoice | None:

@@ -39,11 +39,22 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     Commits on successful request completion, rolls back on any exception.
     Repositories should call `session.flush()` rather than `commit()` so
     that multi-step mutations stay atomic within a single request.
+
+    If a flush fails inside a resolver but the exception is swallowed by
+    Strawberry (to return a GraphQL error), the transaction is left in a
+    "needs rollback" state. We detect that and rollback instead of
+    attempting a doomed commit.
     """
     async with AsyncSessionLocal() as session:
         try:
             yield session
-            await session.commit()
+            # If a prior flush failed and the exception was caught by the
+            # resolver / Strawberry, the transaction is poisoned. Trying to
+            # commit would raise PendingRollbackError. Check first.
+            if session.in_nested_transaction() or not session.is_active:
+                await session.rollback()
+            else:
+                await session.commit()
         except Exception:
             await session.rollback()
             raise

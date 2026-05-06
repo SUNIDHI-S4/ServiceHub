@@ -1,6 +1,8 @@
 """Service mutation inputs."""
 from __future__ import annotations
 
+from decimal import Decimal as D
+
 import strawberry
 
 from app.graphql.scalars import Decimal
@@ -12,8 +14,8 @@ class CreateServiceInput:
     duration_minutes: int
     price: Decimal
     description: str | None = None
-    gst_percent: Decimal = Decimal("0")
-    bonus: Decimal = Decimal("0")
+    gst_percent: Decimal = D("0")
+    bonus: Decimal = D("0")
     is_active: bool = True
 
 

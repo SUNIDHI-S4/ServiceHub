@@ -1,6 +1,8 @@
 """Salary mutation inputs."""
 from __future__ import annotations
 
+from decimal import Decimal as D
+
 import strawberry
 
 from app.graphql.scalars import Decimal
@@ -12,7 +14,7 @@ class CreateSalaryInput:
     amount: Decimal
     pay_year: int
     pay_month: int
-    bonus: Decimal = Decimal("0")
+    bonus: Decimal = D("0")
     notes: str | None = None
 
 

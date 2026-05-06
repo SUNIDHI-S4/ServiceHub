@@ -4,6 +4,7 @@ from __future__ import annotations
 import uuid
 
 import strawberry
+from sqlalchemy.exc import IntegrityError
 
 from app.graphql.inputs.service import CreateServiceInput, UpdateServiceInput
 from app.graphql.types.service import ServiceType
@@ -31,7 +32,13 @@ class ServiceMutations:
             bonus=input.bonus,
             is_active=input.is_active,
         )
-        obj = await repo.add(obj)
+        try:
+            obj = await repo.add(obj)
+        except IntegrityError:
+            await info.context.db.rollback()
+            raise ValueError(
+                f"A service named '{input.name}' already exists."
+            )
         return ServiceType.from_orm(obj)
 
     @strawberry.mutation

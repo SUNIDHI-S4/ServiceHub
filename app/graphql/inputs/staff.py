@@ -1,6 +1,8 @@
 """Staff mutation inputs."""
 from __future__ import annotations
 
+from decimal import Decimal as D
+
 import strawberry
 
 from app.graphql.scalars import Decimal
@@ -12,7 +14,7 @@ class CreateStaffInput:
     email: str
     role: str
     specializations: list[str] = strawberry.field(default_factory=list)
-    monthly_salary: Decimal = Decimal("0")
+    monthly_salary: Decimal = D("0")
 
 
 @strawberry.input
